@@ -1,3 +1,4 @@
+---@diagnostic disable: different-requires
 local storage_util = require("storage-util")
 
 local module = {}
@@ -42,6 +43,7 @@ function module.create_text_input_with_label(parent, name, label)
     pusher.style.horizontally_stretchable = true
     module.create_text_input(flow, name)
     flow.style.minimal_height = 32
+    flow.style.vertical_align = "center"
     return flow
 end
 
@@ -76,6 +78,7 @@ function module.create_checkbox_with_label(parent, name, label, description)
     pusher.style.horizontally_stretchable = true
     module.create_checkbox(flow, name)
     flow.style.minimal_height = 32
+    flow.style.vertical_align = "center"
     return flow
 end
 
@@ -85,30 +88,39 @@ function module.map_callback(name, callback)
     module[name] = callback
 end
 
+
 function module.on_gui_text_changed(event)
+    if event.element.name:match("^qct%-") then
+        return false
+    end
     local player_index = event.player_index
     local player = game.get_player(player_index)
     if not player then
-        return
+        return false
     end
     local value = event.element.text
     storage_util.set(player_index, event.element.name, value)
     if module.mapping[event.element.name] then
         module.mapping[event.element.name](player_index, value)
     end
+    return true
 end
 
 function module.on_gui_checked_state_changed(event)
+    if event.element.name:match("^qct%-") then
+        return false
+    end
     local player_index = event.player_index
     local player = game.get_player(player_index)
     if not player then
-        return
+        return false
     end
     local state = event.element.state
     storage_util.set(player_index, event.element.name, state)
     if module.mapping[event.element.name] then
         module.mapping[event.element.name](player_index, state)
     end
+    return true
 end
 
 return module

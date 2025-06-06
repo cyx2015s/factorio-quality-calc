@@ -115,7 +115,7 @@ function module.matrix_mul(a, b)
 end
 
 ---@param matrix table
----@param initial_state table
+---@param initial_state? table
 function module.get_geometric_sum(matrix, initial_state)
     local close_to_one = function(i) return math.abs(matrix[i][i] - 1) < 1e-10 end
     local denom        = {}
@@ -141,6 +141,8 @@ function module.get_geometric_sum(matrix, initial_state)
             res[ri][rj] = (i == j) and 1 or 0                    -- identity matrix
         end
     end
+    --- state(E + matrix + matrix^2 + matrix^3 + ... matrix ^ infinity)，然后取中间的部分
+    --- 实际上是 state (E - matrix)^(-1)，因为这是一个等比求和
 
     n = #denom -- extract the non singular part of the matrix, set new size
     --- now calculate the inverse of denom
@@ -176,14 +178,12 @@ end
 
 ---Return the conversion rates from each quality level to the final state quality level.
 ---@param matrix any
----@return table converged_matrix, number average_iterations
+---@return table converged_matrix
 function module.get_final_state_of(matrix)
     local count = {}
     for i = 1, #matrix do
         count[i] = tonumber(i == 1)
     end
-    --- state(matrix + matrix^2 + matrix^3 + ... matrix ^ infinity)，然后取中间的部分
-    --- 实际上是 state matrix ( E / (E - matrix) )，因为这是一个等比求和
     local ret = module.matrix_mul(matrix, matrix)
     for i = 1, 32 do
         -- matrix^(2^33)
@@ -193,8 +193,17 @@ function module.get_final_state_of(matrix)
     return ret
 end
 
-function module.get_average_iterations()
-
+function module.matrix_get(matrix, i, j)
+    if matrix then
+        if matrix[i] then
+            if matrix[j] then
+                return matrix[i][j]
+            end
+            return 0
+        end
+        return 0
+    end
+    return 0
 end
 
 --- zivr: 自转
