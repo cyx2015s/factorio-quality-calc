@@ -62,6 +62,9 @@ function update_matrix_result_gui(player_index, recalc)
         storage_util.set(player_index, "result-converged-matrix", converged_matrix)
         local machine_count = matrix.get_geometric_sum(loop)
         storage_util.set(player_index, "result-machine-count", machine_count)
+    else
+        storage_util.set(player_index, "result-converged-matrix", nil)
+        storage_util.set(player_index, "result-machine-count", nil)
     end
     ::main::
     if player.gui.screen["qct.main"] then
@@ -71,7 +74,7 @@ function update_matrix_result_gui(player_index, recalc)
         for i = 1, #cache.quality_next_probability do
             local matrix_element = err and 0.0 or matrix.matrix_get()
             result_table.children[i * 2 + 2].caption = string.format(
-                "%.2f%% (%.2f : 1)",
+                "%.2f%% (%.3f : 1)",
                 matrix.matrix_get(storage_util.get(player_index, "result-converged-matrix"), i, 5) * 100,
                 1.0 / (matrix.matrix_get(storage_util.get(player_index, "result-converged-matrix"), i, 5))
             )
