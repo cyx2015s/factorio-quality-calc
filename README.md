@@ -23,3 +23,9 @@ I will show some use cases in lua below.
 > 1 / module.ublm(module.zivr(0.025*2,0.8))[3][5]
 24.0 --- A space casino filled with normal quality module outputs 1 legendary asteroid chunk every 24 rare ones inputed. You can treat it the same as from normal to rare when quality levels are not all unlocked.
 ```
+
+## Mod
+
+I also made a mod that uses this code, with a simple user interface. If you need more precise control, use the lua code for now.
+
+The mod silently refuses to calculate when you get more items after one cycle, or the quality bonus is greater than 100%.
