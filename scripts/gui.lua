@@ -90,7 +90,7 @@ end
 
 
 function module.on_gui_text_changed(event)
-    if event.element.name:match("^qct%-") then
+    if not event.element.name:match("^qct%.") then
         return false
     end
     local player_index = event.player_index
@@ -107,7 +107,7 @@ function module.on_gui_text_changed(event)
 end
 
 function module.on_gui_checked_state_changed(event)
-    if event.element.name:match("^qct%-") then
+    if not event.element.name:match("^qct%.") then
         return false
     end
     local player_index = event.player_index
