@@ -10,7 +10,7 @@ function module.get_quality_next_probability()
             probability,
             cur_quality.next_probability or 0
         )
-        table.insert(name, cur_quality.localised_name)
+        table.insert(name, { "", "[quality=" .. cur_quality.name .. "]", cur_quality.localised_name })
         table.insert(prototype_name, cur_quality.name)
         cur_quality = cur_quality.next
     end

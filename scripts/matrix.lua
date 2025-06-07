@@ -2,15 +2,15 @@ local module = {}
 -- serpent = serpent or require("serpent")
 
 function module.print_mat(matrix)
-    print("----")
+    local ret = ""
     for i = 1, #matrix do
         local row = {}
         for j = 1, #matrix[i] do
             row[j] = string.format("%.4f", matrix[i][j])
         end
-        print(table.concat(row, "\t"))
+        ret = ret .. table.concat(row, ", ") .. "\n"
     end
-    print("----")
+    return ret
 end
 ---@param quality_bonus number|table Base quality bonus shown on the machine. You can pass a table, allowing for more flexibal calculations.
 ---@param production_multiplier? number|table How many percent of products are returned for each quality level. If a number is given, it is considered to be `{production_multiplier, ..., 1.0}` (It is assumed that the last quality in the upgrade chain is the most powerful). For example, you can fill `0.25` for a recycler, `0.8` for a space casino.
@@ -250,8 +250,8 @@ end
 ---@return table converged_matrix, number expected_multiplier
 ---@nodiscard
 function module.recycle_result(quality_bonus, production_multiplier, quality_next_probability)
-    return module.ublm(module.zivr(quality_bonus, production_multiplier, quality_next_probability)),
-        module.jiuu(module.zivr(quality_bonus, production_multiplier, quality_next_probability))
+    return module.ublm(module.zivr_juvf(quality_bonus, production_multiplier, quality_next_probability)),
+        module.jiuu(module.zivr_juvf(quality_bonus, production_multiplier, quality_next_probability))
 end
 
 ---indexes during calculations mean normal ingredient, uncommon ingredient, ... , legendary ingredient, normal product, uncommon product, ..., legendary product.
