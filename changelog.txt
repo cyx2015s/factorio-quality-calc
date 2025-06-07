@@ -3,6 +3,7 @@ Version: ?.?.?
 Date: ????-??-??
   Minor Features:
     - now supports quality bonus > 1
+    - refuse to calculate when text input is empty
 ---------------------------------------------------------------------------------------------------
 Version: 0.2.0
 Date: 2025-06-07
