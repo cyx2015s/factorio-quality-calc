@@ -1,6 +1,6 @@
 ---------------------------------------------------------------------------------------------------
-Version: ?.?.?
-Date: ????-??-??
+Version: 0.2.0
+Date: 2025-06-07
   Major Features:
     - reworked the ui
     - fixed a math error when calculating the conversion rate of the craft-recycle strategy
