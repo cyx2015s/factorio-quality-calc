@@ -72,9 +72,9 @@ function update_result_gui(player_index, recalc)
     local bruteforce_recycle = not not storage_util.get(player_index, "qct.bruteforce-recycle")
     local err = nil
     local loop = nil
-    -- if (craft_quality_bonus > 1 and not bruteforce_recycle) or recycle_quality_bonus > 1 then
-    --     err = { "qct.error-unsupported-quality-bonus" }
-    -- end
+    if (craft_quality_bonus > 32767 / 1000 and not bruteforce_recycle) or recycle_quality_bonus > 32767 / 1000 then
+        err = { "qct.error-unsupported-quality-bonus" }
+    end
     if (not bruteforce_recycle) and craft_production_multiplier == 0 or recycle_production_multiplier == 0 then
         err = { "qct.error-zero-production" }
     end
