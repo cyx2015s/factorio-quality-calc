@@ -5,6 +5,8 @@ local storage_util = require("scripts.storage-util")
 local gui = require("scripts.gui")
 local cache = {}
 
+
+---@param give_prompt_values boolean
 function on_init_or_changed(give_prompt_values)
     cache.quality_next_probability, cache.quality_name, cache.quality_prototype_name = quality
         .get_quality_next_probability()
@@ -53,6 +55,9 @@ script.on_configuration_changed(
     on_init_or_changed
 )
 
+
+---@param player_index number
+---@param recalc boolean
 function update_result_gui(player_index, recalc)
     local player = game.get_player(player_index)
     if not player then
@@ -67,9 +72,9 @@ function update_result_gui(player_index, recalc)
     local bruteforce_recycle = not not storage_util.get(player_index, "qct.bruteforce-recycle")
     local err = nil
     local loop = nil
-    if (craft_quality_bonus > 1 and not bruteforce_recycle) or recycle_quality_bonus > 1 then
-        err = { "qct.error-unsupported-quality-bonus" }
-    end
+    -- if (craft_quality_bonus > 1 and not bruteforce_recycle) or recycle_quality_bonus > 1 then
+    --     err = { "qct.error-unsupported-quality-bonus" }
+    -- end
     if (not bruteforce_recycle) and craft_production_multiplier == 0 or recycle_production_multiplier == 0 then
         err = { "qct.error-zero-production" }
     end

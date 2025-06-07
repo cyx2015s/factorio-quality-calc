@@ -1,6 +1,9 @@
 local module = {}
 -- serpent = serpent or require("serpent")
 
+
+---@param matrix table
+---@return string
 function module.print_mat(matrix)
     local ret = ""
     for i = 1, #matrix do
@@ -67,6 +70,16 @@ function module.construct_markov_matrix_with(quality_bonus, production_multiplie
             matrix[i][j] = matrix[i][j] - matrix[i][j + 1]                -- remove upgraded
         end
     end
+    for i = 1, matrix_size do
+        for j = 1, matrix_size do
+            if matrix[i][j] < 0 then
+                -- borrow from right instead.
+                local delta = -matrix[i][j]
+                matrix[i][j] = 0
+                matrix[i][j + 1] = matrix[i][j + 1] - delta
+            end
+        end
+    end
     --[[
         state @ matrix will be the result when the Markov chain run for one step. state is a row vector.
         No actual vector-matrix operation is performed, and eign value decomposition don't care about
@@ -125,7 +138,6 @@ function module.matrix_mul(a, b)
     return c
 end
 
----comment
 ---@param n number size of the matrix
 ---@return table matrix a empty matrix
 function module.matrix_empty(n)
@@ -230,6 +242,11 @@ function module.get_final_state_of(matrix, initial_state)
     return ret
 end
 
+---safely get a element
+---@param matrix table
+---@param i number
+---@param j number
+---@return number
 function module.matrix_get(matrix, i, j)
     if matrix then
         if matrix[i] then

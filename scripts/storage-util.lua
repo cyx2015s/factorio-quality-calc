@@ -18,6 +18,7 @@ function module.set(player_index, var_name, value)
     storage.data[player_index][var_name] = value
 end
 
+---@param player_index number
 function module.clear_all(player_index)
     storage.data = storage.data or {}
     storage.data[player_index] = {}

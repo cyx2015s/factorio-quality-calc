@@ -83,6 +83,10 @@ function module.create_checkbox_with_label(parent, name, label, description)
     return flow
 end
 
+---@param parent LuaGuiElement
+---@param name string
+---@param items LocalisedString[]
+---@return LuaGuiElement
 function module.create_dropdown(parent, name, items)
     created = parent.add {
         type = "drop-down",
@@ -93,11 +97,13 @@ function module.create_dropdown(parent, name, items)
     return created
 end
 ---@param name string
----@param callback function<number, any>
+---@param callback function <number, any>
 function module.map_callback(name, callback)
     module[name] = callback
 end
 
+---@param event EventData.on_gui_text_changed
+---@return boolean recalc whether to recalc
 function module.on_gui_text_changed(event)
     if not event.element.name:match("^qct%.") then
         return false
@@ -115,6 +121,8 @@ function module.on_gui_text_changed(event)
     return true
 end
 
+---@param event EventData.on_gui_checked_state_changed
+---@return boolean recalc whether to recalc
 function module.on_gui_checked_state_changed(event)
     if not event.element.name:match("^qct%.") then
         return false
@@ -132,6 +140,8 @@ function module.on_gui_checked_state_changed(event)
     return true
 end
 
+---@param event EventData.on_gui_selection_state_changed
+---@return boolean recalc whether to recalc
 function module.on_gui_selection_state_changed(event)
     if not event.element.name:match("^qct%.") then
         return false

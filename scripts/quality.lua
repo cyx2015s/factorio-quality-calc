@@ -1,5 +1,8 @@
 ---@diagnostic disable: undefined-global
 local module = {}
+---@return table probabilities
+---@return table localised_names
+---@return table prototype_names
 function module.get_quality_next_probability()
     local probability = {}
     local name = {}
