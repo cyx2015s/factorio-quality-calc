@@ -1,6 +1,17 @@
 local module = {}
-serpent = serpent or require("serpent")
+-- serpent = serpent or require("serpent")
 
+function module.print_mat(matrix)
+    print("----")
+    for i = 1, #matrix do
+        local row = {}
+        for j = 1, #matrix[i] do
+            row[j] = string.format("%.4f", matrix[i][j])
+        end
+        print(table.concat(row, "\t"))
+    end
+    print("----")
+end
 ---@param quality_bonus number|table Base quality bonus shown on the machine. You can pass a table, allowing for more flexibal calculations.
 ---@param production_multiplier? number|table How many percent of products are returned for each quality level. If a number is given, it is considered to be `{production_multiplier, ..., 1.0}` (It is assumed that the last quality in the upgrade chain is the most powerful). For example, you can fill `0.25` for a recycler, `0.8` for a space casino.
 ---@param quality_next_probability? table A list of numbers representing the probability of moving to the next quality level. The last element is actually useless, but should be provided.
@@ -72,19 +83,20 @@ end
 ---@param recycle_production_multiplier? number|table How many percent of products are returned for each quality level when recycling. If a number is given, it is considered to be `{recycle_production_multiplier, ..., max(1.0, recycle_production_multiplier)}` (It is assumed that the last quality in the upgrade chain is the most powerful). For example, you can fill `0.25` for a recycler, `0.8` for a space casino.
 ---@param quality_next_probability any? table A list of numbers representing the probability of moving to the next quality level. The last element is actually useless, but should be provided.
 ---@return table matrix Represents the Markov chain for the given parameters.
+---@deprecated The calculation is wrong. use `module.craft_recycle_result` instead.
 function module.construct_craft_and_recycle_matrix_with(craft_quality_bonus, recycle_quality_bonus,
                                                         craft_production_multiplier, recycle_production_multiplier,
                                                         quality_next_probability)
-    assert(
-        craft_production_multiplier * recycle_production_multiplier <= 1.0,
-        "In construct_craft_and_recycle_matrix_with: craft_production_multiplier * recycle_production_multiplier must be less than or equal to 1.0."
-    )
-    local craft_matrix = module.construct_markov_matrix_with(
+    -- assert(
+    --     craft_production_multiplier * recycle_production_multiplier <= 1.0,
+    --     "In construct_craft_and_recycle_matrix_with: craft_production_multiplier * recycle_production_multiplier must be less than or equal to 1.0."
+    -- )
+    local craft_matrix = module.zivr_juvf(
         craft_quality_bonus,
         craft_production_multiplier or 1.0,
         quality_next_probability
     )
-    local recycle_matrix = module.construct_markov_matrix_with(
+    local recycle_matrix = module.zivr_juvf(
         recycle_quality_bonus,
         recycle_production_multiplier,
         quality_next_probability
@@ -110,13 +122,27 @@ function module.matrix_mul(a, b)
             end
         end
     end
-    -- print(serpent.line(a) .. "\n*\n" .. serpent.line(b) .. "\n=\n" .. serpent.line(c) .. "\n")
     return c
 end
 
+---comment
+---@param n number size of the matrix
+---@return table matrix a empty matrix
+function module.matrix_empty(n)
+    local matrix = {}
+    for i = 1, n do
+        matrix[i] = {}
+        for j = 1, n do
+            matrix[i][j] = 0
+        end
+    end
+    return matrix
+end
 ---@param matrix table
 ---@param initial_state? table
-function module.get_geometric_sum(matrix, initial_state)
+---@param return_raw? boolean Return the raw value of s(E-M)^(-1), instead of the sum of all components. if not set, default to false. indexes are preserved, and meaningless indexes have value `nil`.
+---@return number|table count
+function module.get_geometric_sum(matrix, initial_state, return_raw)
     local close_to_one = function(i) return math.abs(matrix[i][i] - 1) < 1e-10 end
     local denom        = {}
     local res          = {}
@@ -167,19 +193,30 @@ function module.get_geometric_sum(matrix, initial_state)
             end
         end
     end
-    local count = 0
+    if not return_raw then
+        local count = 0
+        for i = 1, n do
+            for j = 1, n do
+                count = count + state[i] * res[i][j]
+            end
+        end
+        return count
+    end
+    local final_state = {}
     for i = 1, n do
+        final_state[indexes[i]] = 0
         for j = 1, n do
-            count = count + state[i] * res[i][j]
+            final_state[indexes[i]] = final_state[indexes[i]] + state[j] * res[j][i]
         end
     end
-    return count
+    return final_state
 end
 
 ---Return the conversion rates from each quality level to the final state quality level.
 ---@param matrix any
+---@param initial_state? table A list of items.
 ---@return table converged_matrix
-function module.get_final_state_of(matrix)
+function module.get_final_state_of(matrix, initial_state)
     local count = {}
     for i = 1, #matrix do
         count[i] = tonumber(i == 1)
@@ -206,10 +243,83 @@ function module.matrix_get(matrix, i, j)
     return 0
 end
 
+---The all in one function.
+---@param quality_bonus number|table Base quality bonus shown on the machine. You can pass a table, allowing for more flexibal calculations.
+---@param production_multiplier number|table How many percent of products are returned for each quality level. If a number is given, it is considered to be `{production_multiplier, ..., 1.0}` (It is assumed that the last quality in the upgrade chain is the most powerful). For example, you can fill `0.25` for a recycler, `0.8` for a space casino.
+---@param quality_next_probability table A list of numbers representing the probability of moving to the next quality level. The last element is actually useless, but should be provided.
+---@return table converged_matrix, number expected_multiplier
+---@nodiscard
+function module.recycle_result(quality_bonus, production_multiplier, quality_next_probability)
+    return module.ublm(module.zivr(quality_bonus, production_multiplier, quality_next_probability)),
+        module.jiuu(module.zivr(quality_bonus, production_multiplier, quality_next_probability))
+end
+
+---indexes during calculations mean normal ingredient, uncommon ingredient, ... , legendary ingredient, normal product, uncommon product, ..., legendary product.
+---@param craft_quality_bonus number|table Base quality bonus shown on the machine for crafting. You can pass a table, allowing for more flexible calculations.
+---@param recycle_quality_bonus number|table Base quality bonus shown on the machine for recycling. You can pass a table, allowing for more flexible calculations.
+---@param craft_production_multiplier number|table How many percent of products are returned for each quality level when crafting. If a number is given, it is considered to be `{craft_production_multiplier, ..., 1.0}` (It is assumed that the last quality in the upgrade chain is the most powerful). For example, you can fill `1.5` for a electromanetic plant, `1` for assembler.
+---@param recycle_production_multiplier number|table How many percent of products are returned for each quality level when recycling. If a number is given, it is considered to be `{recycle_production_multiplier, ..., max(1.0, recycle_production_multiplier)}` (It is assumed that the last quality in the upgrade chain is the most powerful). For example, you can fill `0.25` for a recycler, `0.8` for a space casino.
+---@param quality_next_probability? table A list of numbers representing the probability of moving to the next quality level. The last element is actually useless, but should be provided.
+---@param initial_state? table A list of items. first are ingredients, and followed by products.
+---@return table converged_matrix The final state matrix, index meaning are described before.
+---@return table accumulated_list The accumulated list of machines needed for each quality level.
+function module.craft_recycle_result(craft_quality_bonus, recycle_quality_bonus,
+                                     craft_production_multiplier, recycle_production_multiplier,
+                                     quality_next_probability, initial_state)
+    --- Must deal with the legendary ingredients and the legendary products.
+    if quality_next_probability == nil then
+        quality_next_probability = { 0.1, 0.1, 0.1, 0.1, 0 } -- base game quality stat
+    end
+    local n = #quality_next_probability
+    local craft_mat = module.zivr_juvf(craft_quality_bonus, craft_production_multiplier,
+        quality_next_probability)
+    local full_craft_mat = module.matrix_empty(2 * n)
+
+    for i = 1, n do
+        --- 右上角是合成矩阵 topright is craft matrix
+        for j = 1, n do
+            full_craft_mat[i][j + n] = craft_mat[i][j]
+        end
+        --- 右下角是单位矩阵 bottomright is identity matrix
+        full_craft_mat[i + n][i + n] = 1
+    end
+    local recycle_mat = module.zivr_juvf(recycle_quality_bonus, recycle_production_multiplier,
+        quality_next_probability)
+    local full_recycle_mat = module.matrix_empty(2 * n)
+    for i = 1, n do
+        --- 左上角是单位矩阵 topleft is identity matrix
+        full_recycle_mat[i][i] = 1
+        --- 左下角是回收矩阵 bottom left is recycle matrix
+        for j = 1, n do
+            if i ~= n then
+                --- i ~= n, 保留最高品质
+                full_recycle_mat[i + n][j] = recycle_mat[i][j]
+            end
+        end
+    end
+    full_recycle_mat[2 * n][2 * n] = 1 -- ensure will not recycle high quality product
+    local full_mat = module.ig(full_craft_mat, full_recycle_mat)
+    local converged_full_mat = module.ublm(full_mat)
+    local ret_mat = module.matrix_empty(n)
+    --- 只提取右上角的部分，表示对应品质原料到最高品质产物的转换率
+    -- for i = 1, n do
+    --     for j = 1, n do
+    --         ret_mat[i][j] = converged_full_mat[i][j + n]
+    --     end
+    -- end
+    -- module.print_mat(full_mat)
+    -- module.print_mat(full_craft_mat)
+    -- module.print_mat(full_recycle_mat)
+    -- module.print_mat(converged_full_mat)
+    return converged_full_mat, module.jiuu(full_mat, initial_state, true)
+end
+
+--- zivr_juvf: 自转矩阵
+module.zivr_juvf = module.construct_markov_matrix_with
 --- zivr: 自转
-module.zivr = module.construct_markov_matrix_with
+module.zivr = module.recycle_result
 --- vizk_hvub: 制造回收
-module.vizk_hvub = module.construct_craft_and_recycle_matrix_with
+module.vizk_hvub = module.craft_recycle_result
 --- ublm: 收敛
 module.ublm = module.get_final_state_of
 --- ig: 乘
