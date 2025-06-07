@@ -66,13 +66,15 @@ function update_result_gui(player_index, recalc)
     local root_gui = player.gui.screen
     local craft_quality_bonus = tonumber(storage_util.get(player_index, "qct.craft-quality-bonus")) or 0
     local recycle_quality_bonus = tonumber(storage_util.get(player_index, "qct.recycle-quality-bonus")) or 0
-    local craft_production_multiplier = tonumber(storage_util.get(player_index, "qct.craft-production-multiplier")) or 1
-    local recycle_production_multiplier = tonumber(storage_util.get(player_index, "qct.recycle-production-multiplier")) or
-        1
-    local bruteforce_recycle = not not storage_util.get(player_index, "qct.bruteforce-recycle")
+    local craft_production_multiplier_text = storage_util.get(player_index, "qct.craft-production-multiplier")
+    local recycle_production_multiplier_text = storage_util.get(player_index, "qct.recycle-production-multiplier")
     local err = nil
     local loop = nil
-    if (craft_quality_bonus > 32767 / 1000 and not bruteforce_recycle) or recycle_quality_bonus > 32767 / 1000 then
+    local craft_production_multiplier = tonumber(craft_production_multiplier_text) or 1
+    local recycle_production_multiplier = tonumber(recycle_production_multiplier_text) or 1
+
+    local bruteforce_recycle = not not storage_util.get(player_index, "qct.bruteforce-recycle")
+    if ((not bruteforce_recycle) and craft_quality_bonus > 32767 / 1000) or recycle_quality_bonus > 32767 / 1000 then
         err = { "qct.error-unsupported-quality-bonus" }
     end
     if (not bruteforce_recycle) and craft_production_multiplier == 0 or recycle_production_multiplier == 0 then
@@ -80,6 +82,9 @@ function update_result_gui(player_index, recalc)
     end
     if ((not bruteforce_recycle) and craft_production_multiplier or 1) * recycle_production_multiplier > 1 then
         err = { "qct.error-positive-recycle" }
+    end
+    if ((not bruteforce_recycle) and craft_production_multiplier_text == "") or recycle_production_multiplier_text == "" then
+        err = { "qct.error-empty-field" }
     end
     local converged_matrix
     local accumulative_machines

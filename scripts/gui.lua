@@ -114,6 +114,11 @@ function module.on_gui_text_changed(event)
         return false
     end
     local value = event.element.text
+    if #value > 16 then
+        --- cap it at 16 characters
+        value = value:sub(1, 16)
+        event.element.text = value
+    end
     storage_util.set(player_index, event.element.name, value)
     if module.mapping[event.element.name] then
         module.mapping[event.element.name](player_index, value)
