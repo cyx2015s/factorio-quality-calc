@@ -342,19 +342,19 @@ script.on_event(defines.events.on_gui_selection_state_changed,
     end
 )
 
-script.on_event(defines.events.on_player_selected_area,
-    function(event)
-        local player = game.get_player(event.player_index)
-        if not player then
-            return
-        end
-        player.print(serpent.line(
-            {
-                time = event.tick,
-                entities = event.entities
-            }
-        ))
-    end)
+-- script.on_event(defines.events.on_player_selected_area,
+--     function(event)
+--         local player = game.get_player(event.player_index)
+--         if not player then
+--             return
+--         end
+--         player.print(serpent.line(
+--             {
+--                 time = event.tick,
+--                 entities = event.entities
+--             }
+--         ))
+--     end)
 
 script.on_event(defines.events.on_gui_click,
     gui.on_gui_click)
