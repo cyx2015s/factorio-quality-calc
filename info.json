@@ -2,7 +2,7 @@
   "title": "Quality Calculator",
   "name": "quality-calc",
   "description": "Calculate quality upcycling ratios in game!",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "author": "tanvec",
   "factorio_version": "2.0",
   "dependencies": [
