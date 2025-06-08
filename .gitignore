@@ -1,3 +1,4 @@
 .vscode
 changelog_handler
 modportal_handler
+__pycache__
