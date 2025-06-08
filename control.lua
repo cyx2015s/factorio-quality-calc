@@ -15,6 +15,9 @@ function on_init_or_changed(give_prompt_values)
         if player.gui.screen["qct.main"] then
             player.gui.screen["qct.main"].destroy()
         end
+        if player.gui.screen["qct.gui-root"] then
+            player.gui.screen["qct.gui-root"].destroy()
+        end
         storage_util.set(player.index, "qct.quality-to", cache.quality_count)
         storage_util.set(player.index, "qct.quality-from", 1)
         if give_prompt_values then
@@ -108,9 +111,10 @@ function update_result_gui(player_index, recalc)
         converged_matrix = storage_util.get(player_index, "qct.result-converged-matrix")
         accumulative_machines = storage_util.get(player_index, "qct.result-accumulative-machines")
     end
-    if not root_gui["qct.main"] then
+    if not root_gui["qct.gui-root"] then
         return
     end
+    root_gui = root_gui["qct.gui-root"]
     local craft_gui = root_gui["qct.main"]["qct.flow"]["qct.input"]["qct.craft"]
     if storage_util.get(player_index, "qct.bruteforce-recycle") then
         craft_gui.visible = false
@@ -170,24 +174,76 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
     local gui_root = player.gui.screen
     if gui_root["qct.main"] then
         gui_root["qct.main"].destroy()
+    elseif gui_root["qct.gui-root"] then
+        gui_root["qct.gui-root"].destroy()
     else
-        local main = gui_root.add {
+        gui_root = gui_root.add {
             type = "frame",
+            name = "qct.gui-root",
+            direction = "vertical",
+        }
+        local main = gui_root.add {
+            type = "flow",
             name = "qct.main",
-            caption = { "qct.caption" },
+            -- caption = { "qct.caption" },
             direction = "vertical",
             auto_center = true,
+            -- style = "frame"
         }
+        --- Reference: https://github.com/PennyJim/gui-modules/blob/main/modules/window_frame.lua#L62-L123
+        local title_flow = main.add {
+            type = "flow",
+            name = "qct.title",
+            direction = "horizontal",
+        }
+        title_flow.drag_target = gui_root
+        local title_label = title_flow.add {
+            type = "label",
+            caption = { "qct.caption" },
+            style = "frame_title",
+            ignored_by_interaction = true,
+        }
+        local drag_handle = title_flow.add {
+            type = "empty-widget",
+            style = "draggable_space",
+            ignored_by_interaction = true,
+        }
+        drag_handle.style.horizontally_stretchable = true
+        drag_handle.style.height = 24
+        drag_handle.style.left_margin = 4
+        drag_handle.style.right_margin = 4
+        local close_button = title_flow.add {
+            type = "sprite-button",
+            sprite = "utility/close",
+            name = "qct.close",
+            style = "frame_action_button",
+            hovered_sprite = "utility/close_black",
+            clicked_sprite = "utility/close_black",
+        }
+        gui.map_callback("qct.close",
+            ---@param event_ EventData.on_gui_click
+            function(event_)
+                local player = game.get_player(event_.player_index)
+                if not player then
+                    return
+                end
+                if player.gui.screen["qct.gui-root"] then
+                    player.gui.screen["qct.gui-root"].destroy()
+                end
+            end)
         main.style.minimal_width = 400
-        main.style.minimal_height = 300
+        main.style.minimal_height = 400
         main.style.maximal_width = 800
-        main.style.maximal_height = 600
+        main.style.maximal_height = 800
+        -- main.style.padding = 4
         local frame = main.add {
             type = "flow",
             name = "qct.flow",
             direction = "vertical",
+            style = "inset_frame_container_vertical_flow"
         }
         frame.style.vertical_spacing = 12
+        frame.style.margin = 4
         local input = frame.add {
             type = "frame",
             name = "qct.input",
@@ -241,7 +297,7 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
             caption = cache.quality_name[cache.quality_count],
         }
         update_result_gui(event.player_index, false)
-        main.location = {
+        gui_root.location = {
             (player.display_resolution.width - 600) / 2,
             (player.display_resolution.height - 450) / 2
         }
@@ -285,3 +341,20 @@ script.on_event(defines.events.on_gui_selection_state_changed,
         end
     end
 )
+
+script.on_event(defines.events.on_player_selected_area,
+    function(event)
+        local player = game.get_player(event.player_index)
+        if not player then
+            return
+        end
+        player.print(serpent.line(
+            {
+                time = event.tick,
+                entities = event.entities
+            }
+        ))
+    end)
+
+script.on_event(defines.events.on_gui_click,
+    gui.on_gui_click)

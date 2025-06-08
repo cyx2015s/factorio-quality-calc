@@ -97,9 +97,9 @@ function module.create_dropdown(parent, name, items)
     return created
 end
 ---@param name string
----@param callback function <number, any>
+---@param callback function <EventData>
 function module.map_callback(name, callback)
-    module[name] = callback
+    module.mapping[name] = callback
 end
 
 ---@param event EventData.on_gui_text_changed
@@ -121,7 +121,7 @@ function module.on_gui_text_changed(event)
     end
     storage_util.set(player_index, event.element.name, value)
     if module.mapping[event.element.name] then
-        module.mapping[event.element.name](player_index, value)
+        module.mapping[event.element.name](event)
     end
     return true
 end
@@ -140,7 +140,7 @@ function module.on_gui_checked_state_changed(event)
     local state = event.element.state
     storage_util.set(player_index, event.element.name, state)
     if module.mapping[event.element.name] then
-        module.mapping[event.element.name](player_index, state)
+        module.mapping[event.element.name](event)
     end
     return true
 end
@@ -159,7 +159,7 @@ function module.on_gui_selection_state_changed(event)
     local selected_index = event.element.selected_index
     storage_util.set(player_index, event.element.name, selected_index)
     if module.mapping[event.element.name] then
-        module.mapping[event.element.name](player_index, selected_index)
+        module.mapping[event.element.name](event)
     end
     return true
 end
@@ -212,4 +212,22 @@ function module.create_building_configuration(parent, name, label, id)
     module.create_text_input(internal_flow, internal_name)
     return flow
 end
+---@param event EventData.on_gui_click
+function module.on_gui_click(event)
+    if not event.element.valid then
+        return
+    end
+    if not event.element.name:match("^qct%.") then
+        return
+    end
+    local player_index = event.player_index
+    local player = game.get_player(player_index)
+    if not player then
+        return
+    end
+    if module.mapping[event.element.name] then
+        module.mapping[event.element.name](event)
+    end
+end
+
 return module
