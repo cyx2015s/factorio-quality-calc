@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.3
+Date: 2025-06-09
+  Scripting:
+    - removed the debug print. I expect a total rewrite of this mod to support more upcycling ways.
+      probably won't update for a long time.
+---------------------------------------------------------------------------------------------------
 Version: 0.2.2
 Date: 2025-06-08
   Minor Features:
