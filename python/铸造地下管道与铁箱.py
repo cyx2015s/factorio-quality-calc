@@ -63,3 +63,39 @@ print(收敛矩阵)
 最终概率 = 初始状态 @ 收敛矩阵
 print("最终概率")
 print(sum(初始状态) / sum(最终概率))
+# 流向矩阵，只有非奇异部分
+单位矩阵 = np.eye(综合矩阵.shape[0])
+流向矩阵 = 综合矩阵 * (np.ones(综合矩阵.shape) - 单位矩阵)
+#
+print(流向矩阵)
+流向矩阵级数和 = np.linalg.inv(单位矩阵 - 流向矩阵)
+稳态流向 = 流向矩阵级数和
+for i in range(稳态流向.shape[0]):
+    for j in range(稳态流向.shape[1]):
+        if 稳态流向[i, j] < 1e-10:
+            稳态流向[i, j] = 0.0  # 去除小于1e-10的值
+print("稳态消耗")
+
+
+def divide_and_sum(mat):
+    return list(
+        map(
+            float,
+            map(
+                sum,
+                [
+                    mat[:品质等级数量],
+                    mat[品质等级数量 : 2 * 品质等级数量],
+                    mat[2 * 品质等级数量 :],
+                ],
+            ),
+        )
+    )
+
+
+print("稳态输入管道（铸造出的混合品质管道）")
+print(divide_and_sum(初始状态))
+print("铁板变为管道速度/管道变为地下管道速度/地下管道回收速度")
+print(divide_and_sum(初始状态 @ 稳态流向))
+print("传说铁板产量")
+print(sum(最终概率))
