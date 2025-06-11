@@ -220,17 +220,6 @@ script.on_event(defines.events.on_lua_shortcut, function(event)
             hovered_sprite = "utility/close_black",
             clicked_sprite = "utility/close_black",
         }
-        gui.map_callback("qct.close",
-            ---@param event_ EventData.on_gui_click
-            function(event_)
-                local player = game.get_player(event_.player_index)
-                if not player then
-                    return
-                end
-                if player.gui.screen["qct.gui-root"] then
-                    player.gui.screen["qct.gui-root"].destroy()
-                end
-            end)
         main.style.minimal_width = 400
         main.style.minimal_height = 400
         main.style.maximal_width = 800
@@ -358,3 +347,15 @@ script.on_event(defines.events.on_gui_selection_state_changed,
 
 script.on_event(defines.events.on_gui_click,
     gui.on_gui_click)
+
+gui.map_callback("qct.close",
+    ---@param event_ EventData.on_gui_click
+    function(event_)
+        local player = game.get_player(event_.player_index)
+        if not player then
+            return
+        end
+        if player.gui.screen["qct.gui-root"] then
+            player.gui.screen["qct.gui-root"].destroy()
+        end
+    end)
